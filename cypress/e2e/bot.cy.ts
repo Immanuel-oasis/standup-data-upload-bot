@@ -27,7 +27,7 @@ describe('template spec', () => {
     // waits for file to be created and saved
     cy.waitForExportComplete(1, 30);
     // wait a bit to ensure data is totally downloaded
-    cy.wait(20000);
+    cy.wait(60000);
     // merge files
     cy.mergeCsvFiles('cypress/downloads')
     // upload all the csv to a google sheet

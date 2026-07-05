@@ -42,17 +42,23 @@ export default defineConfig({
 
       on('task', {
         async uploadCsvToGoogleSheet() {
-          const csv = fs.readFileSync('cypress/downloads/allTickets.csv', 'utf-8')
+          try {
+            const csv = fs.readFileSync('cypress/downloads/allTickets.csv', 'utf-8')
 
-          const response = await fetch('https://script.google.com/macros/s/AKfycbwVcmKlqyGiwC9-ag03yg6Lp-lHTIG_FoCPzcGGCMLR_VDttbH-r2GDtArv3Yhog2-f/exec', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({ csv: csv }).toString()
-          })
+            const response = await fetch('https://script.google.com/macros/s/AKfycbwVcmKlqyGiwC9-ag03yg6Lp-lHTIG_FoCPzcGGCMLR_VDttbH-r2GDtArv3Yhog2-f/exec', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' }, // see note below
+              body: JSON.stringify({ csv })
+            })
 
-          const result = await response.json()
+            const text = await response.text()
+            console.log('Apps Script raw response:', text)
 
-          return result;
+            return JSON.parse(text)
+          } catch (err) {
+            console.error('uploadCsvToGoogleSheet failed:', err)
+            throw err
+          }
         }
       })
 
