@@ -32,9 +32,11 @@ declare global {
     namespace Cypress {
         interface Chainable {
             login(url: string): Chainable<void>
-            waitForExportComplete(attempt: number, maxAttempts: number):Chainable<void>
-            mergeCsvFiles(dir: string) : Cypress.Chainable<Interception<any, any>>
+            waitForExportComplete(attempt: number, maxAttempts: number): Chainable<void>
+            mergeCsvFiles(dir: string): Cypress.Chainable<Interception<any, any>>
             uploadCsvToGoogleSheet(): Chainable<any>
+            waitIndefinitelyForSpecificFileAction(): Chainable<void>
+            deleteFilesInDownload(): Chainable<void>
         }
     }
 }
@@ -70,16 +72,24 @@ Cypress.Commands.add('waitForExportComplete', (attempt = 1, maxAttempts = 30): a
             return cy.waitForExportComplete(attempt + 1, maxAttempts)
         } else if (status === 200) {
             throw new Error(`Export did not complete after ${maxAttempts} polls (last status: ${status})`)
-        } 
+        }
 
     })
 })
 
 // mergeCsvFiles({ dir, general, closed, open }: { dir: string; general: string; closed: string; open: string }) 
 Cypress.Commands.add('mergeCsvFiles', (dir) => {
-    cy.task('mergeCsvFiles', {dir})
+    cy.task('mergeCsvFiles', { dir })
 })
 
 Cypress.Commands.add('uploadCsvToGoogleSheet', () => {
-    cy.task('uploadCsvToGoogleSheet', null, {timeout: 180000})
+    cy.task('uploadCsvToGoogleSheet', null, { timeout: 180000 })
+})
+
+Cypress.Commands.add('waitIndefinitelyForSpecificFileAction', () => {
+    cy.task('waitIndefinitelyForSpecificFileAction', null, { timeout: 180000 })
+})
+
+Cypress.Commands.add('deleteFilesInDownload', () => {
+    cy.task('deleteFilesInDownload', null)
 })
