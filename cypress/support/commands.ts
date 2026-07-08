@@ -32,7 +32,7 @@ declare global {
     namespace Cypress {
         interface Chainable {
             login(url: string): Chainable<void>
-            waitForExportComplete(attempt: number, maxAttempts: number): Chainable<void>
+            waitForExportComplete(attempt: number, maxAttempts: number, alias: string): Chainable<void>
             mergeCsvFiles(dir: string): Cypress.Chainable<Interception<any, any>>
             uploadCsvToGoogleSheet(): Chainable<any>
             waitIndefinitelyForSpecificFileAction(): Chainable<void>
@@ -58,8 +58,8 @@ Cypress.Commands.add('login', (url: string) => {
     cy.url({ timeout: 60000 }).should('include', '/index.php')
 })
 
-Cypress.Commands.add('waitForExportComplete', (attempt = 1, maxAttempts = 30): any => {
-    return cy.wait('@created', { timeout: 180000 }).then((req) => {
+Cypress.Commands.add('waitForExportComplete', (attempt = 1, maxAttempts = 30, alias: string): any => {
+    return cy.wait(`@${alias}`, { timeout: 180000 }).then((req) => {
         const status = req.response?.statusCode
 
         if (status === 201) {
@@ -69,9 +69,11 @@ Cypress.Commands.add('waitForExportComplete', (attempt = 1, maxAttempts = 30): a
 
         if (status === 200 && attempt < maxAttempts) {
             // still processing, poll again
-            return cy.waitForExportComplete(attempt + 1, maxAttempts)
+            return cy.waitForExportComplete(attempt + 1, maxAttempts, alias)
         } else if (status === 200) {
             throw new Error(`Export did not complete after ${maxAttempts} polls (last status: ${status})`)
+        } else if (status === 404) {
+            cy.visit('messages/bad_connection.html')
         }
 
     })
@@ -83,11 +85,11 @@ Cypress.Commands.add('mergeCsvFiles', (dir) => {
 })
 
 Cypress.Commands.add('uploadCsvToGoogleSheet', () => {
-    cy.task('uploadCsvToGoogleSheet', null, { timeout: 180000 })
+    cy.task('uploadCsvToGoogleSheet', null, { timeout: 350000 })
 })
 
 Cypress.Commands.add('waitIndefinitelyForSpecificFileAction', () => {
-    cy.task('waitIndefinitelyForSpecificFileAction', null, { timeout: 180000 })
+    cy.task('waitIndefinitelyForSpecificFileAction', null, { timeout: 350000 })
 })
 
 Cypress.Commands.add('deleteFilesInDownload', () => {

@@ -55,24 +55,42 @@ export default defineConfig({
 
       on('task', {
         async uploadCsvToGoogleSheet() {
-          try {
-            const csv = fs.readFileSync('cypress/downloads/allTickets.csv', 'utf-8')
+          const csv = fs.readFileSync('cypress/downloads/allTickets.csv', 'utf-8')
+          const url = 'https://script.google.com/macros/s/AKfycbxShpdJwnMCISIlX3s5Z-ePBw7fy1sL8W64hrPa30_ijhQo6CLgMxb6FkjGjWDEf3WqAA/exec'
 
-            const response = await fetch('https://script.google.com/macros/s/AKfycbwVcmKlqyGiwC9-ag03yg6Lp-lHTIG_FoCPzcGGCMLR_VDttbH-r2GDtArv3Yhog2-f/exec', {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain' }, // see note below
-              body: JSON.stringify({ csv }),
+          const maxAttempts = 10
+          const delayMs = 5000
 
-            })
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              console.log(`Upload attempt ${attempt}/${maxAttempts}`)
 
-            const text = await response.text()
-            console.log('Apps Script raw response:', text)
+              const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ csv })
+              })
 
-            return JSON.parse(text)
-          } catch (err) {
-            console.error('uploadCsvToGoogleSheet failed:', err)
-            throw err
+              const text = await response.text()
+              console.log('Apps Script raw response:', text)
+
+              const parsed = JSON.parse(text)
+
+              if (parsed.status === 'success') {
+                return parsed
+              }
+
+              console.warn(`Attempt ${attempt} returned non-success:`, parsed)
+            } catch (err) {
+              console.warn(`Attempt ${attempt} failed:`, err)
+            }
+
+            if (attempt < maxAttempts) {
+              await new Promise((resolve) => setTimeout(resolve, delayMs))
+            }
           }
+
+          throw new Error(`uploadCsvToGoogleSheet failed after ${maxAttempts} attempts`)
         }
       })
 
@@ -87,7 +105,7 @@ export default defineConfig({
 
                 if (closedPath && openPath) {
                   resolve(null)
-                } else if (attempt >= 30) { // 30 seconds max
+                } else if (attempt >= 60) { // 300 seconds max
                   reject(new Error('Timed out waiting for Open/Closed Tickets CSV files'))
                 } else {
                   resolve(check(attempt + 1))
