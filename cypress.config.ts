@@ -59,7 +59,7 @@ export default defineConfig({
           const url = 'https://script.google.com/macros/s/AKfycbxShpdJwnMCISIlX3s5Z-ePBw7fy1sL8W64hrPa30_ijhQo6CLgMxb6FkjGjWDEf3WqAA/exec'
 
           const maxAttempts = 10
-          const delayMs = 5000
+          const delayMs = 60000
 
           for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {

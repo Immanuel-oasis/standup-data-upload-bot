@@ -85,7 +85,7 @@ Cypress.Commands.add('mergeCsvFiles', (dir) => {
 })
 
 Cypress.Commands.add('uploadCsvToGoogleSheet', () => {
-    cy.task('uploadCsvToGoogleSheet', null, { timeout: 350000 })
+    cy.task('uploadCsvToGoogleSheet', null, { timeout: 600000 })
 })
 
 Cypress.Commands.add('waitIndefinitelyForSpecificFileAction', () => {
